@@ -3,6 +3,19 @@ rust:
   - stable
   - beta
   - nightly
+dist: xerus
+script:
+  - lsb_release -a
+  - cargo test
+  - cargo run --example rainbow
+  - cargo run --example thread
+  - cargo run --example threadpool
+  - cargo doc --no-deps
 matrix:
   allow_failures:
     - rust: nightly
+notifications:
+  email:
+    on_success: never
+    on_failure: never
+    on_pull_requests: true
