@@ -13,8 +13,8 @@
 //! use std::time::Duration;
 //! 
 //! fn main() {
-//!     // The guard must have a name. `_` will drop it instantly, which woudl lead to 
-//!     // unexpected results
+//!     // The guard must have a name. `_` will drop it instantly, which would
+//!     // lead to unexpected results
 //!     let _g = DropGuard::new(spawn(move || {
 //!                             sleep(Duration::from_secs(2));
 //!                             println!("println! from thread");
