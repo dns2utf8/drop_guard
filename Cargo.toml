@@ -1,0 +1,20 @@
+[package]
+name = "drop_guard"
+version = "0.0.0"
+authors = ["Stefan Schindler <dns2utf8@estada.ch>"]
+
+description = """
+A thread pool for running a number of jobs on a fixed set of worker threads.
+"""
+categories = ["rust-patterns"]
+
+readme = "README.md"
+documentation = "https://docs.rs/drop_guard"
+repository = "https://github.com/dns2utf8/drop_guard"
+
+license = "MIT/Apache-2.0"
+
+[badges]
+
+
+[dependencies]
