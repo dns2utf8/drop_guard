@@ -27,3 +27,13 @@ fn main() {
     println!("Waiting for thread ...");
 }
 ```
+
+## Examples
+
+Feel free to run the included examples:
+
+```bash
+cargo run --example rainbow
+cargo run --example thread
+cargo run --example threadpool
+```
