@@ -1,10 +1,10 @@
 [package]
 name = "drop_guard"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Stefan Schindler <dns2utf8@estada.ch>"]
 
 description = """
-A thread pool for running a number of jobs on a fixed set of worker threads.
+The drop_guard crate enables you to implement the Drop trait on any type.
 """
 categories = [
     "rust-patterns",
