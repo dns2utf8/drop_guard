@@ -1,6 +1,6 @@
 [package]
 name = "drop_guard"
-version = "0.0.2"
+version = "0.1.0"
 authors = ["Stefan Schindler <dns2utf8@estada.ch>"]
 
 description = """

@@ -1,6 +1,6 @@
 //! This crate gives a generic way to add a callback to any dropping value
 //! 
-//! You may use this for debugging values, see [examples](https://github.com/dns2utf8/drop_guard/tree/master/examples).
+//! You may use this for debugging values, see the [struct documentation](struct.DropGuard.html) or the [standalone examples](https://github.com/dns2utf8/drop_guard/tree/master/examples).
 //! 
 //! # Example:
 //! 
@@ -30,6 +30,27 @@
 use std::ops::{Deref, DerefMut, Drop, FnMut};
 use std::boxed::Box;
 
+/// The DropGuard will remain to `Send` and `Sync` from `T`.
+///
+/// # Examples
+///
+/// The `LinkedList<T>` is `Send`.
+/// So the `DropGuard` will be too, but it will not be `Sync`:
+///
+/// ```
+/// use drop_guard::DropGuard;
+/// use std::collections::LinkedList;
+/// use std::thread;
+///
+/// let list: LinkedList<u32> = LinkedList::new();
+///
+/// let a_list = DropGuard::new(list, |_| {});
+///
+/// // Send the guarded list to another thread
+/// thread::spawn(move || {
+///     assert_eq!(0, a_list.len());
+/// }).join();
+/// ```
 pub struct DropGuard<T, F: FnMut(T)> {
     data: Option<T>,
     func: Box<F>,
@@ -57,6 +78,15 @@ impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
     }
 }
 
+
+/// Use the captured value.
+///
+/// ```
+/// use drop_guard::DropGuard;
+///
+/// let val = DropGuard::new(42usize, |_| {});
+/// assert_eq!(42, *val);
+/// ```
 impl<T, F: FnMut(T)> Deref for DropGuard<T, F> {
     type Target = T;
 
@@ -65,12 +95,37 @@ impl<T, F: FnMut(T)> Deref for DropGuard<T, F> {
     }
 }
 
+/// Modify the captured value.
+///
+/// ```
+/// use drop_guard::DropGuard;
+///
+/// let mut val = DropGuard::new(vec![2, 3, 4], |_| {});
+/// assert_eq!(3, val.len());
+///
+/// val.push(5);
+/// assert_eq!(4, val.len());
+/// ```
 impl<T, F: FnMut(T)> DerefMut for DropGuard<T, F> {
     fn deref_mut(&mut self) -> &mut T {
         self.data.as_mut().expect("the data is here until the drop")
     }
 }
 
+/// React to dropping the value.
+/// In this example we measure the time the value is alive.
+///
+/// ```
+/// use drop_guard::DropGuard;
+/// use std::time::Instant;
+///
+/// let start_time = Instant::now();
+/// let val = DropGuard::new(42usize, move |_| {
+///     let time_alive = start_time.elapsed();
+///     println!("value lived for {}ns", time_alive.subsec_nanos())
+/// });
+/// assert_eq!(42, *val);
+/// ```
 impl<T,F: FnMut(T)> Drop for DropGuard<T, F> {
     fn drop(&mut self) {
         let mut data: Option<T> = None;
@@ -117,5 +172,19 @@ mod tests {
                                 , |i| i.store(42, Ordering::Relaxed));
         }
         assert_eq!(42usize, a.load(Ordering::Relaxed));
+    }
+
+    #[test]
+    fn keep_sync_shared_data() {
+        fn assert_sync<T: Sync>(_: T) {}
+        let g = DropGuard::new(vec![0], |_| {});
+        assert_sync(g);
+    }
+
+    #[test]
+    fn keep_send_shared_data() {
+        fn assert_send<T: Send>(_: T) {}
+        let g = DropGuard::new(vec![0], |_| {});
+        assert_send(g);
     }
 }
