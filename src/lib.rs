@@ -120,7 +120,7 @@ impl<T, F: FnMut(T)> DerefMut for DropGuard<T, F> {
 /// use std::time::Instant;
 ///
 /// let start_time = Instant::now();
-/// let val = DropGuard::new(42usize, move |_| {
+/// let val = DropGuard::new(42usize, |_| {
 ///     let time_alive = start_time.elapsed();
 ///     println!("value lived for {}ns", time_alive.subsec_nanos())
 /// });

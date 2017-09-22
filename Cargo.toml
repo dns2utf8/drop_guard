@@ -17,8 +17,16 @@ repository = "https://github.com/dns2utf8/drop_guard"
 
 license = "MIT/Apache-2.0"
 
+include = [
+    "**/*.rs",
+    "README.md",
+    "CHANGELOG.md",
+    "Cargo.toml",
+]
+
 [badges]
 travis-ci = { repository = "dns2utf8/drop_guard", branch = "master" }
+appveyor = { repository = "dns2utf8/drop_guard", branch = "master", service = "github" }
 
 [dependencies]
 
