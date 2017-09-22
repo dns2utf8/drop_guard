@@ -45,6 +45,7 @@ Feel free to bring your own ideas or continue one of these:
 
 * Add example/test with panic between guard and drop
 * Add example/test with panic in guard closure
+* Add minimal rustc version
 
 ## License
 
