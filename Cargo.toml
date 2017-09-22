@@ -5,10 +5,19 @@ authors = ["Stefan Schindler <dns2utf8@estada.ch>"]
 
 description = """
 The drop_guard crate enables you to implement the Drop trait on any type.
+So you can run a closure on any value running out of scope.
 """
 categories = [
     "rust-patterns",
     "data-structures",
+]
+keywords = [
+    "drop",
+    "scope",
+    "deref", "auto-deref",
+    "type-system",
+    "container",
+    "callback", "lambda", "closure"
 ]
 
 readme = "README.md"
