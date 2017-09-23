@@ -1,6 +1,6 @@
 [package]
 name = "drop_guard"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Stefan Schindler <dns2utf8@estada.ch>"]
 
 description = """
@@ -28,7 +28,7 @@ include = [
 
 [badges]
 travis-ci = { repository = "dns2utf8/drop_guard", branch = "master" }
-appveyor = { repository = "dns2utf8/drop_guard", branch = "master", service = "github" }
+appveyor = { repository = "dns2utf8/drop-guard", branch = "master", service = "github" }
 
 [dependencies]
 

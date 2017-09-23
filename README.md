@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/drop_guard.svg)](https://crates.io/crates/drop_guard)
 [![doc.rs](https://docs.rs/drop_guard/badge.svg)](https://docs.rs/drop_guard)
 [![Build Status travis](https://travis-ci.org/dns2utf8/drop_guard.svg?branch=master)](https://travis-ci.org/dns2utf8/drop_guard)
-[![Build status appveyor](https://ci.appveyor.com/api/projects/status/github/dns2utf8/drop_guard?svg=true)](https://ci.appveyor.com/project/dns2utf8/lasttest)
+[![Build status appveyor](https://ci.appveyor.com/api/projects/status/github/dns2utf8/drop_guard?svg=true)](https://ci.appveyor.com/project/dns2utf8/drop-guard)
 
 ## Use cases
 
