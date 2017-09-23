@@ -1,6 +1,6 @@
 [package]
 name = "drop_guard"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Stefan Schindler <dns2utf8@estada.ch>"]
 
 description = """
@@ -11,14 +11,7 @@ categories = [
     "rust-patterns",
     "data-structures",
 ]
-keywords = [
-    "drop",
-    "scope",
-    "deref", "auto-deref",
-    "type-system",
-    "container",
-    "callback", "lambda", "closure"
-]
+keywords = [ "type-system", "container", "callback", "lambda", "closure" ]
 
 readme = "README.md"
 documentation = "https://docs.rs/drop_guard"
