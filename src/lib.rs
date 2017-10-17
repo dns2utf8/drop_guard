@@ -187,4 +187,26 @@ mod tests {
         let g = DropGuard::new(vec![0], |_| {});
         assert_send(g);
     }
+
+    #[test]
+    fn zero_size() {
+        use std::mem::{size_of_val, size_of};
+        use std::fmt::Debug;
+
+        let data = ();
+        let data_size = size_of_val(&data);
+        let closure = |val| { println!("{:?}", val)};
+        let closure_size = size_of_val(&closure);
+        assert_eq!(0, data_size);
+        assert_eq!(0, closure_size);
+
+        assert_eq!(size_of::<Option<()>>(), size_of_val( &Some(data.clone()) ));
+        assert_eq!(1, size_of_val( &Some(data.clone()) ));
+
+        assert_eq!(8, size_of_val(&Box::new(closure_size)));
+
+        let d = DropGuard::new(data, closure);
+        let s = size_of_val(&d);
+        assert_eq!(16, s);
+    }
 }
