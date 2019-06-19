@@ -26,7 +26,6 @@
 //! ```
 //!
 
-use std::boxed::Box;
 use std::ops::{Deref, DerefMut, Drop, FnMut};
 
 /// The DropGuard will remain to `Send` and `Sync` from `T`.
@@ -52,7 +51,7 @@ use std::ops::{Deref, DerefMut, Drop, FnMut};
 /// ```
 pub struct DropGuard<T, F: FnMut(T)> {
     data: Option<T>,
-    func: Box<F>,
+    func: F,
 }
 
 impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
@@ -72,7 +71,7 @@ impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
     pub fn new(data: T, func: F) -> DropGuard<T, F> {
         DropGuard {
             data: Some(data),
-            func: Box::new(func),
+            func: func,
         }
     }
 }
