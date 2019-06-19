@@ -46,3 +46,17 @@ fn keep_send_shared_data() {
     let g = DropGuard::new(vec![0], |_| {});
     assert_send(g);
 }
+
+#[test]
+fn into_inner_cancels() {
+    let mut x = 1;
+    {
+        let _g = DropGuard::new((), |_| x += 1);
+    }
+    assert_eq!(2, x);
+    {
+        let _g = DropGuard::new((), |_| x += 1);
+        _g.into_inner();
+    }
+    assert_eq!(2, x);
+}

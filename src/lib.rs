@@ -76,6 +76,10 @@ impl<T: Sized, F: FnOnce(T)> DropGuard<T, F> {
             func: Some(func),
         }
     }
+
+    pub fn into_inner(mut self) -> T {
+        self.data.take().expect("the data is here until the drop")
+    }
 }
 
 /// Use the captured value.
@@ -127,8 +131,8 @@ impl<T, F: FnOnce(T)> DerefMut for DropGuard<T, F> {
 /// ```
 impl<T, F: FnOnce(T)> Drop for DropGuard<T, F> {
     fn drop(&mut self) {
-        let data = self.data.take().expect("the data is here until the drop");
-        let f = self.func.take().expect("the func is here until the drop");
-        f(data);
+        if let (Some(data), Some(f)) = (self.data.take(), self.func.take()) {
+            f(data);
+        }
     }
 }
