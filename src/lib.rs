@@ -26,7 +26,7 @@
 //! ```
 //!
 
-use std::ops::{Deref, DerefMut, Drop, FnMut};
+use std::ops::{Deref, DerefMut};
 
 /// The DropGuard will remain to `Send` and `Sync` from `T`.
 ///
@@ -49,12 +49,12 @@ use std::ops::{Deref, DerefMut, Drop, FnMut};
 ///     assert_eq!(0, a_list.len());
 /// }).join();
 /// ```
-pub struct DropGuard<T, F: FnMut(T)> {
+pub struct DropGuard<T, F: FnOnce(T)> {
     data: Option<T>,
-    func: F,
+    func: Option<F>,
 }
 
-impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
+impl<T: Sized, F: FnOnce(T)> DropGuard<T, F> {
     /// Creates a new guard taking in your data and a function.
     ///
     /// ```
@@ -71,7 +71,7 @@ impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
     pub fn new(data: T, func: F) -> DropGuard<T, F> {
         DropGuard {
             data: Some(data),
-            func: func,
+            func: Some(func),
         }
     }
 }
@@ -84,7 +84,7 @@ impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
 /// let val = DropGuard::new(42usize, |_| {});
 /// assert_eq!(42, *val);
 /// ```
-impl<T, F: FnMut(T)> Deref for DropGuard<T, F> {
+impl<T, F: FnOnce(T)> Deref for DropGuard<T, F> {
     type Target = T;
 
     fn deref(&self) -> &T {
@@ -103,7 +103,7 @@ impl<T, F: FnMut(T)> Deref for DropGuard<T, F> {
 /// val.push(5);
 /// assert_eq!(4, val.len());
 /// ```
-impl<T, F: FnMut(T)> DerefMut for DropGuard<T, F> {
+impl<T, F: FnOnce(T)> DerefMut for DropGuard<T, F> {
     fn deref_mut(&mut self) -> &mut T {
         self.data.as_mut().expect("the data is here until the drop")
     }
@@ -123,13 +123,11 @@ impl<T, F: FnMut(T)> DerefMut for DropGuard<T, F> {
 /// });
 /// assert_eq!(42, *val);
 /// ```
-impl<T, F: FnMut(T)> Drop for DropGuard<T, F> {
+impl<T, F: FnOnce(T)> Drop for DropGuard<T, F> {
     fn drop(&mut self) {
-        let mut data: Option<T> = None;
-        std::mem::swap(&mut data, &mut self.data);
-
-        let ref mut f = self.func;
-        f(data.expect("the data is here until the drop"));
+        let data = self.data.take().expect("the data is here until the drop");
+        let f = self.func.take().expect("the func is here until the drop");
+        f(data);
     }
 }
 
