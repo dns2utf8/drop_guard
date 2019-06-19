@@ -4,7 +4,7 @@
 //!
 //! # Example:
 //!
-//! ```
+//! ```no_run
 //! extern crate drop_guard;
 //!
 //! use drop_guard::DropGuard;
@@ -20,7 +20,7 @@
 //!                             println!("println! from thread");
 //!                         })
 //!                         , |join_handle| join_handle.join().unwrap());
-//!     
+//!
 //!     println!("Waiting for thread ...");
 //! }
 //! ```
