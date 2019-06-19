@@ -1,17 +1,17 @@
 //! This crate gives a generic way to add a callback to any dropping value
-//! 
+//!
 //! You may use this for debugging values, see the [struct documentation](struct.DropGuard.html) or the [standalone examples](https://github.com/dns2utf8/drop_guard/tree/master/examples).
-//! 
+//!
 //! # Example:
-//! 
+//!
 //! ```
 //! extern crate drop_guard;
-//! 
+//!
 //! use drop_guard::DropGuard;
-//! 
+//!
 //! use std::thread::{spawn, sleep};
 //! use std::time::Duration;
-//! 
+//!
 //! fn main() {
 //!     // The guard must have a name. `_` will drop it instantly, which would
 //!     // lead to unexpected results
@@ -24,11 +24,10 @@
 //!     println!("Waiting for thread ...");
 //! }
 //! ```
-//! 
+//!
 
-
-use std::ops::{Deref, DerefMut, Drop, FnMut};
 use std::boxed::Box;
+use std::ops::{Deref, DerefMut, Drop, FnMut};
 
 /// The DropGuard will remain to `Send` and `Sync` from `T`.
 ///
@@ -58,16 +57,16 @@ pub struct DropGuard<T, F: FnMut(T)> {
 
 impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
     /// Creates a new guard taking in your data and a function.
-    /// 
+    ///
     /// ```
     /// use drop_guard::DropGuard;
-    /// 
+    ///
     /// let s = String::from("a commonString");
     /// let mut s = DropGuard::new(s, |final_string| println!("s became {} at last", final_string));
-    /// 
+    ///
     /// // much code and time passes by ...
     /// *s = "a rainbow".to_string();
-    /// 
+    ///
     /// // by the end of this function the String will have become a rainbow
     /// ```
     pub fn new(data: T, func: F) -> DropGuard<T, F> {
@@ -77,7 +76,6 @@ impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
         }
     }
 }
-
 
 /// Use the captured value.
 ///
@@ -126,11 +124,11 @@ impl<T, F: FnMut(T)> DerefMut for DropGuard<T, F> {
 /// });
 /// assert_eq!(42, *val);
 /// ```
-impl<T,F: FnMut(T)> Drop for DropGuard<T, F> {
+impl<T, F: FnMut(T)> Drop for DropGuard<T, F> {
     fn drop(&mut self) {
         let mut data: Option<T> = None;
         std::mem::swap(&mut data, &mut self.data);
-        
+
         let ref mut f = self.func;
         f(data.expect("the data is here until the drop"));
     }
@@ -168,8 +166,7 @@ mod tests {
     fn drop_change() {
         let a = Arc::new(AtomicUsize::new(9));
         {
-            let _ = DropGuard::new(a.clone()
-                                , |i| i.store(42, Ordering::Relaxed));
+            let _ = DropGuard::new(a.clone(), |i| i.store(42, Ordering::Relaxed));
         }
         assert_eq!(42usize, a.load(Ordering::Relaxed));
     }
