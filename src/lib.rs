@@ -1,17 +1,17 @@
 //! This crate gives a generic way to add a callback to any dropping value
-//! 
+//!
 //! You may use this for debugging values, see the [struct documentation](struct.DropGuard.html) or the [standalone examples](https://github.com/dns2utf8/drop_guard/tree/master/examples).
-//! 
+//!
 //! # Example:
-//! 
-//! ```
+//!
+//! ```no_run
 //! extern crate drop_guard;
-//! 
+//!
 //! use drop_guard::DropGuard;
-//! 
+//!
 //! use std::thread::{spawn, sleep};
 //! use std::time::Duration;
-//! 
+//!
 //! fn main() {
 //!     // The guard must have a name. `_` will drop it instantly, which would
 //!     // lead to unexpected results
@@ -20,15 +20,15 @@
 //!                             println!("println! from thread");
 //!                         })
 //!                         , |join_handle| join_handle.join().unwrap());
-//!     
+//!
 //!     println!("Waiting for thread ...");
 //! }
 //! ```
-//! 
+//!
 
+#![no_std]
 
-use std::ops::{Deref, DerefMut, Drop, FnMut};
-use std::boxed::Box;
+use core::ops::{Deref, DerefMut};
 
 /// The DropGuard will remain to `Send` and `Sync` from `T`.
 ///
@@ -51,33 +51,36 @@ use std::boxed::Box;
 ///     assert_eq!(0, a_list.len());
 /// }).join();
 /// ```
-pub struct DropGuard<T, F: FnMut(T)> {
+pub struct DropGuard<T, F: FnOnce(T)> {
     data: Option<T>,
-    func: Box<F>,
+    func: Option<F>,
 }
 
-impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
+impl<T: Sized, F: FnOnce(T)> DropGuard<T, F> {
     /// Creates a new guard taking in your data and a function.
-    /// 
+    ///
     /// ```
     /// use drop_guard::DropGuard;
-    /// 
+    ///
     /// let s = String::from("a commonString");
     /// let mut s = DropGuard::new(s, |final_string| println!("s became {} at last", final_string));
-    /// 
+    ///
     /// // much code and time passes by ...
     /// *s = "a rainbow".to_string();
-    /// 
+    ///
     /// // by the end of this function the String will have become a rainbow
     /// ```
     pub fn new(data: T, func: F) -> DropGuard<T, F> {
         DropGuard {
             data: Some(data),
-            func: Box::new(func),
+            func: Some(func),
         }
     }
-}
 
+    pub fn into_inner(mut self) -> T {
+        self.data.take().expect("the data is here until the drop")
+    }
+}
 
 /// Use the captured value.
 ///
@@ -87,7 +90,7 @@ impl<T: Sized, F: FnMut(T)> DropGuard<T, F> {
 /// let val = DropGuard::new(42usize, |_| {});
 /// assert_eq!(42, *val);
 /// ```
-impl<T, F: FnMut(T)> Deref for DropGuard<T, F> {
+impl<T, F: FnOnce(T)> Deref for DropGuard<T, F> {
     type Target = T;
 
     fn deref(&self) -> &T {
@@ -106,7 +109,7 @@ impl<T, F: FnMut(T)> Deref for DropGuard<T, F> {
 /// val.push(5);
 /// assert_eq!(4, val.len());
 /// ```
-impl<T, F: FnMut(T)> DerefMut for DropGuard<T, F> {
+impl<T, F: FnOnce(T)> DerefMut for DropGuard<T, F> {
     fn deref_mut(&mut self) -> &mut T {
         self.data.as_mut().expect("the data is here until the drop")
     }
@@ -126,65 +129,10 @@ impl<T, F: FnMut(T)> DerefMut for DropGuard<T, F> {
 /// });
 /// assert_eq!(42, *val);
 /// ```
-impl<T,F: FnMut(T)> Drop for DropGuard<T, F> {
+impl<T, F: FnOnce(T)> Drop for DropGuard<T, F> {
     fn drop(&mut self) {
-        let mut data: Option<T> = None;
-        std::mem::swap(&mut data, &mut self.data);
-        
-        let ref mut f = self.func;
-        f(data.expect("the data is here until the drop"));
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::atomic::{AtomicUsize, Ordering};
-    use std::sync::Arc;
-
-    #[test]
-    fn it_works() {
-        let mut i = 0;
-        {
-            let _ = DropGuard::new(0, |_| i = 42);
+        if let (Some(data), Some(f)) = (self.data.take(), self.func.take()) {
+            f(data);
         }
-        assert_eq!(42, i);
-    }
-
-    #[test]
-    fn deref() {
-        let g = DropGuard::new(5usize, |_| {});
-        assert_eq!(5usize, *g);
-    }
-
-    #[test]
-    fn deref_mut() {
-        let mut g = DropGuard::new(5usize, |_| {});
-        *g = 12;
-        assert_eq!(12usize, *g);
-    }
-
-    #[test]
-    fn drop_change() {
-        let a = Arc::new(AtomicUsize::new(9));
-        {
-            let _ = DropGuard::new(a.clone()
-                                , |i| i.store(42, Ordering::Relaxed));
-        }
-        assert_eq!(42usize, a.load(Ordering::Relaxed));
-    }
-
-    #[test]
-    fn keep_sync_shared_data() {
-        fn assert_sync<T: Sync>(_: T) {}
-        let g = DropGuard::new(vec![0], |_| {});
-        assert_sync(g);
-    }
-
-    #[test]
-    fn keep_send_shared_data() {
-        fn assert_send<T: Send>(_: T) {}
-        let g = DropGuard::new(vec![0], |_| {});
-        assert_send(g);
     }
 }

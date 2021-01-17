@@ -26,6 +26,8 @@ include = [
     "Cargo.toml",
 ]
 
+edition = "2018"
+
 [badges]
 travis-ci = { repository = "dns2utf8/drop_guard", branch = "master" }
 appveyor = { repository = "dns2utf8/drop-guard", branch = "master", service = "github" }
