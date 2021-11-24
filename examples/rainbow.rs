@@ -1,10 +1,8 @@
-extern crate drop_guard;
-
-use drop_guard::DropGuard;
+use drop_guard::guard;
 
 fn main() {
     let s = String::from("a commonString");
-    let mut s = DropGuard::new(s, |final_string| {
+    let mut s = guard(s, |final_string| {
         println!("s became {} at last", final_string)
     });
 

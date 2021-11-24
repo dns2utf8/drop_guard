@@ -3,6 +3,7 @@
 ## 0.3.0 2020-11-24
 
 * Update to edition 2018
+* Migrate to a naked function so one has to write less code
 
 ## 0.2.1 2017-09-23
 
