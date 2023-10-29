@@ -201,7 +201,8 @@ mod tests {
     fn shadowed_drop_change() {
         let a = Arc::new(AtomicUsize::new(9));
         {
-            let _ = guard(a.clone(), |i| i.store(42, Ordering::Relaxed));
+            // this must be named, _ will be dropped immediately
+            let _g = guard(a.clone(), |i| i.store(42, Ordering::Relaxed));
             assert_eq!(9usize, a.load(Ordering::Relaxed));
         }
         assert_eq!(42usize, a.load(Ordering::Relaxed));
