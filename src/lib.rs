@@ -145,7 +145,7 @@ impl<T, F: FnMut(T)> Drop for DropGuard<T, F> {
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicUsize, Ordering};
-    use std::sync::Arc;
+    use std::sync::{Arc, Barrier};
 
     #[test]
     fn it_works() {
@@ -174,6 +174,35 @@ mod tests {
         let a = Arc::new(AtomicUsize::new(9));
         {
             let _ = guard(a.clone(), |i| i.store(42, Ordering::Relaxed));
+        }
+        assert_eq!(42usize, a.load(Ordering::Relaxed));
+    }
+
+    #[test]
+    fn thread_drop_change() {
+        let a = Arc::new(AtomicUsize::new(9));
+        let barrier = Arc::new(Barrier::new(2));
+        {
+            let guard = guard(a.clone(), |i| i.store(42, Ordering::SeqCst));
+            let barrier = barrier.clone();
+            std::thread::spawn(move || {
+                guard.store(23, Ordering::Relaxed);
+                drop(guard);
+                barrier.wait();
+            });
+        }
+        barrier.wait();
+        assert_eq!(42usize, a.load(Ordering::SeqCst));
+    }
+
+    #[test]
+    /// reproduce error in issue:
+    /// https://github.com/dns2utf8/drop_guard/issues/5
+    fn shadowed_drop_change() {
+        let a = Arc::new(AtomicUsize::new(9));
+        {
+            let _ = guard(a.clone(), |i| i.store(42, Ordering::Relaxed));
+            assert_eq!(9usize, a.load(Ordering::Relaxed));
         }
         assert_eq!(42usize, a.load(Ordering::Relaxed));
     }
